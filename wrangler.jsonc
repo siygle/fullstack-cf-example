@@ -1,4 +1,4 @@
-// Initial tempory wrangler.json
+// Initial temporary wrangler.json
 // Running `bun infra:up will update and overwrite this file
 {
   "name": "fullstack-cf-example-site",
@@ -15,9 +15,9 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_id": "__",
+      "migrations_dir": "src/db/migrations",
       "database_name": "__",
-      "migrations_dir": "src/db/migrations"
+      "database_id": "__"
     }
   ]
 }
