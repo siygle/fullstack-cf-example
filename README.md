@@ -17,13 +17,13 @@ This repo contain a fullstack example to build on Cloudflare with the following 
 - KV (for sessions)
 - Website running on workers using RedwoodSDK
 
-All the required resources are configured via Alchmey in infra.config.ts
+All the required resources are configured via Alchmey in alchemy.run.ts
 
 ## Credits
 
 - **MJ Meyer**: this example was eavily inspired and borrow alot from his [repo](https://github.com/mj-meyer/rwsdk-better-auth-drizzle), adding little things here and there, mainly Alchemy as IaC.
   - Check /types/env.d.ts to see how our IaC help defining our types (no need to generate types with Wrangler)
-  - Check ./infra.config.ts to see how the whole infra is defined as code via Alchemy
+  - Check ./alchemy.run.ts to see how the whole infra is defined as code via Alchemy
 
 ## Getting Started
 
