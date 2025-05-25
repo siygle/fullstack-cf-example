@@ -1,0 +1,23 @@
+// Initial tempory wrangler.json
+// Running `bun infra:up will update and overwrite this file
+{
+  "name": "fullstack-cf-example-site",
+  "main": "src/worker.tsx",
+  "compatibility_date": "2025-04-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "dist/client", "binding": "ASSETS" },
+  "kv_namespaces": [
+    {
+      "binding": "SESSIONS_KV",
+      "id": "__"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "__",
+      "database_name": "__",
+      "migrations_dir": "src/db/migrations"
+    }
+  ]
+}
