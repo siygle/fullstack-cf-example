@@ -2,6 +2,7 @@ import { db } from "@/db/db"
 import { user } from "@/db/schema"
 import { LogoutButton } from "@/app/shared/components"
 import { AppContext } from "@/worker"
+import { Link } from "react-router-dom"; // Added Link import
 import {
   Card,
   CardContent,
@@ -17,7 +18,12 @@ const Home = async ({ ctx }: { ctx: AppContext }) => {
     <div className="p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Home Page</h1>
-        <LogoutButton authUrl={authUrl} className="button" />
+        <div className="flex items-center space-x-4">
+          <Link to="/dashboard/blog/posts" className="text-blue-500 hover:text-blue-700">
+            Blog Management
+          </Link>
+          <LogoutButton authUrl={authUrl} className="button" />
+        </div>
       </div>
 
       <Card>

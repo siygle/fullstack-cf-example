@@ -1,4 +1,5 @@
 import { link } from "@/app/shared/links"
+import { Link as RouterLink } from "react-router-dom"; // Using react-router-dom Link
 import { Button } from "@/app/shared/components/ui/button"
 import {
   Card,
@@ -15,9 +16,12 @@ export function Landing() {
           <CardTitle className="text-3xl">Fullstack CF Example</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="text-center">
-            <Button asChild size="lg">
-              <a href={link("/home")}>Go to Home Page</a>
+          <div className="flex flex-col items-center space-y-4">
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <a href={link("/home")}>Go to Home Page (User Dashboard)</a>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+              <RouterLink to="/blog">View Blog</RouterLink>
             </Button>
           </div>
 

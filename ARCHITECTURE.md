@@ -62,6 +62,51 @@ The backend is built as a serverless application running on Cloudflare Workers, 
 - **Adapter:** The `drizzleAdapter` is used to connect `better-auth` to the project's database, allowing it to store and retrieve user and session information.
 - **Secondary Storage:** The configuration in `src/lib/auth.ts` also mentions `secondaryStorage` (from `src/db/secondaryStorage.ts`), which might be used by `better-auth` for caching or other purposes.
 
+## Blogging System
+
+The application includes a full-featured blogging system with capabilities for post creation, management, and public viewing.
+
+### Key Components:
+
+1.  **Database Schema (`src/db/schema/blog-schema.ts`):**
+    *   **`posts` Table:** Stores the main content of blog posts, including title, content (Markdown), author (`userId`), creation, and update timestamps.
+    *   **`tags` Table:** A simple table to store unique tag names.
+    *   **`postTags` Table:** A join table linking posts to tags, enabling many-to-many relationships between posts and tags.
+    *   Relationships between these tables and the `users` table (from `auth-schema.ts`) are defined to link posts to authors and manage tag associations.
+
+2.  **API Endpoints (`src/worker.tsx`):**
+    *   A set of RESTful API endpoints are implemented to manage blog posts and tags. These are defined within the Hono application in `src/worker.tsx`.
+    *   **`/api/posts`:**
+        *   `GET`: Lists all blog posts with author details and associated tags. Publicly accessible.
+        *   `POST`: Creates a new blog post. Requires authentication. Associates the post with the logged-in user.
+    *   **`/api/posts/:id`:**
+        *   `GET`: Retrieves a single blog post by its ID, including author and tags. Publicly accessible.
+        *   `PUT`: Updates an existing blog post. Requires authentication and ownership (user must be the author of the post).
+        *   `DELETE`: Deletes a blog post. Requires authentication and ownership.
+    *   **`/api/tags`:**
+        *   `GET`: Lists all available tags. Publicly accessible.
+
+3.  **Frontend Components - Blog Management (Dashboard):**
+    *   Located under `src/app/pages/dashboard/blog/`.
+    *   **`PostsPage.tsx`**: Provides a table view of created posts with options to edit or delete them. Includes a link to create new posts.
+    *   **`PostEditorPage.tsx`**: A form for creating and editing blog posts.
+        *   Uses `react-simplemde-editor` for a rich Markdown editing experience for the post content.
+        *   Allows input for title and comma-separated tags.
+    *   These components interact with the secure blog API endpoints.
+
+4.  **Frontend Components - Public View:**
+    *   Located under `src/app/pages/blog/`.
+    *   **`BlogIndexPage.tsx`**: Displays a list of all blog posts with snippets, author information, publication dates, and tags. Includes basic pagination.
+    *   **`PostPage.tsx`**: Displays a single blog post's full content.
+        *   Renders Markdown content to HTML using the `react-markdown` library.
+    *   These components consume the public blog API endpoints.
+
+5.  **Authentication and Authorization:**
+    *   Blog management functionalities (creating, editing, deleting posts) are protected.
+    *   The API endpoints (`POST /api/posts`, `PUT /api/posts/:id`, `DELETE /api/posts/:id`) require a valid user session, managed by `better-auth`. An unauthenticated request results in a 401 Unauthorized error.
+    *   Posts have an ownership model: only the author of a post can edit or delete it. Attempts to modify another user's post will result in a 403 Forbidden error.
+    *   The dashboard pages (`PostsPage.tsx`, `PostEditorPage.tsx`) are also protected by the `isAuthenticated` middleware in `src/worker.tsx`, redirecting unauthenticated users to the login page.
+
 ## Build and Deployment Process
 
 The project uses Vite for building, and is deployed on Cloudflare Workers. Infrastructure management is aided by a tool referred to as "alchemy."
