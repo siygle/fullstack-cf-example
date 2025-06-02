@@ -1,7 +1,7 @@
 import alchemy from "alchemy"
 import { Website, D1Database, KVNamespace } from "alchemy/cloudflare"
 
-const APP_NAME = "fullstack-cf-example"
+const APP_NAME = "cf-blogging"
 
 const app = await alchemy(APP_NAME, {
   phase: process.argv[2] === "destroy" ? "destroy" : "up",
