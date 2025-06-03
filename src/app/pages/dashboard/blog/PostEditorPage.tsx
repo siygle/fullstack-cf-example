@@ -1,7 +1,40 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import SimpleMDEEditor from 'react-simplemde-editor';
+// import SimpleMDEEditor from 'react-simplemde-editor'; // Original import
 import 'easymde/dist/easymde.min.css'; // Import EasyMDE styles
+
+const SimpleMDEEditor = React.lazy(() => import('react-simplemde-editor'));
+
+// Wrapper component to ensure SimpleMDEEditor is only rendered on the client-side
+interface ClientOnlySimpleMDEEditorProps {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  options?: object; // Adjust the type according to SimpleMDEEditor's options prop
+}
+
+const ClientOnlySimpleMDEEditor: React.FC<ClientOnlySimpleMDEEditorProps> = ({ id, value, onChange, options }) => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return <div>Loading editor...</div>; // Or null, or a more sophisticated placeholder
+  }
+
+  return (
+    <Suspense fallback={<div>Loading editor...</div>}>
+      <SimpleMDEEditor
+        id={id}
+        value={value}
+        onChange={onChange}
+        options={options}
+      />
+    </Suspense>
+  );
+};
 
 export const PostEditorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -113,7 +146,7 @@ export const PostEditorPage: React.FC = () => {
           <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
             Content
           </label>
-          <SimpleMDEEditor
+          <ClientOnlySimpleMDEEditor
             id="content"
             value={content}
             onChange={setContent}
