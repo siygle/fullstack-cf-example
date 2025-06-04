@@ -1,6 +1,5 @@
 import { db } from "@/db/db"
 import { post, tag, postToTag } from "@/db/schema"
-import { LogoutButton } from "@/app/shared/components"
 import { AppContext } from "@/worker"
 import {
   Card,
@@ -12,12 +11,9 @@ import { Button } from "@/app/shared/components/ui/button"
 import { link } from "@/app/shared/links"
 import { eq } from "drizzle-orm"
 
-const Home = async ({ ctx }: { ctx: AppContext }) => {
-  const { user, authUrl } = ctx
-  
-  // Fetch only published posts with their tags
+const Posts = async ({ ctx }: { ctx: AppContext }) => {
+  // Fetch all posts
   const posts = await db.query.post.findMany({
-    where: (post, { eq }) => eq(post.status, "published"),
     orderBy: (post, { desc }) => [desc(post.createdAt)],
   })
   
@@ -41,27 +37,23 @@ const Home = async ({ ctx }: { ctx: AppContext }) => {
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Blog Posts</h1>
+        <h1 className="text-3xl font-bold">Manage Posts</h1>
         <div className="flex gap-4">
-          {user && (
-            <Button asChild>
-              <a href="/admin/posts">Manage Posts</a>
-            </Button>
-          )}
-          {user ? (
-            <LogoutButton authUrl={authUrl} className="button" />
-          ) : (
-            <Button asChild variant="outline">
-              <a href={link("/user/login")}>Login</a>
-            </Button>
-          )}
+          <Button asChild>
+            <a href="/admin/post">Create New Post</a>
+          </Button>
+          <Button asChild variant="outline">
+            <a href="/admin">Back to Dashboard</a>
+          </Button>
         </div>
       </div>
 
       {postsWithTags.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">No posts yet.</p>
+            <p className="text-center text-muted-foreground">
+              You haven't created any posts yet.
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -69,17 +61,25 @@ const Home = async ({ ctx }: { ctx: AppContext }) => {
           {postsWithTags.map((post) => (
             <Card key={post.id}>
               <CardHeader>
-                <CardTitle>{post.title}</CardTitle>
-                <div className="text-sm text-muted-foreground">
-                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                <div className="flex justify-between items-center">
+                  <CardTitle>{post.title}</CardTitle>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    post.status === "published" 
+                      ? "bg-green-100 text-green-800" 
+                      : post.status === "draft"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-blue-100 text-blue-800"
+                  }`}>
+                    {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Created: {new Date(post.createdAt).toLocaleDateString()}</span>
+                  <span>Updated: {new Date(post.updatedAt).toLocaleDateString()}</span>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="prose max-w-none">
-                  {/* Display a preview of the content */}
-                  <p>{post.content.substring(0, 200)}...</p>
-                </div>
-                <div className="mt-4 flex gap-2">
+                <div className="flex gap-2 mb-4">
                   {post.tags.map((tag) => (
                     <span
                       key={tag.id}
@@ -89,10 +89,14 @@ const Home = async ({ ctx }: { ctx: AppContext }) => {
                     </span>
                   ))}
                 </div>
-                <div className="mt-4">
+                <div className="flex gap-4">
                   <Button asChild variant="outline">
-                    <a href={`/post/${post.id}`}>Read More</a>
+                    <a href={`/admin/post/${post.id}`}>Edit</a>
                   </Button>
+                  <Button asChild variant="outline">
+                    <a href={`/post/${post.id}`} target="_blank">View</a>
+                  </Button>
+                  <Button variant="destructive">Delete</Button>
                 </div>
               </CardContent>
             </Card>
@@ -103,4 +107,4 @@ const Home = async ({ ctx }: { ctx: AppContext }) => {
   )
 }
 
-export { Home }
+export { Posts }

@@ -25,6 +25,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.43.1",
+    "nanoid": "^5.1.5",
     "rwsdk": "^0.0.85",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.7"
