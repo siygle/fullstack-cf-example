@@ -1,0 +1,1 @@
+ALTER TABLE `post` ADD `format` text NOT NULL DEFAULT 'markdown';

@@ -6,6 +6,8 @@ export const post = sqliteTable("post", {
   content: text("content").notNull(),
   // Status can be: "published", "draft", "private"
   status: text("status").notNull().$defaultFn(() => "draft"),
+  // Format can be: "markdown", "html", "text"
+  format: text("format").notNull().$defaultFn(() => "markdown"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),

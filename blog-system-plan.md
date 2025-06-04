@@ -95,6 +95,8 @@ export default defineApp([
     route("/home", Home), // Public home page with published posts
     route("/post/:id", Post), // Public post view
     route("/admin", [isAuthenticated, adminRoutes]), // Admin routes (protected)
+    // Note: Admin authentication uses email OTP. During development, the OTP is logged to the console
+    // instead of being sent via email. Check terminal logs after entering your email to find the OTP.
     prefix("/user", userRoutes),
   ]),
 ])
@@ -133,6 +135,23 @@ export const adminRoutes = [
 ## 6. Technical Considerations
 
 1. **Authentication**: We'll leverage the existing authentication system to ensure only you (the admin) can access the admin routes.
+   
+   The authentication system uses email OTP (One-Time Password) through the "better-auth" library:
+   - Users enter their email on the login page
+   - A 6-digit OTP is generated
+   - During development, instead of sending an actual email, the OTP is logged to the console:
+   ```typescript
+   // From src/lib/auth.ts
+   sendVerificationOTP: async ({ email, otp, type }, request) => {
+     // send email to user with OTP
+     console.log({ email, otp, type })
+   },
+   ```
+   - To access admin pages during development:
+     1. Go to the login page and enter your email
+     2. Check the terminal running `bun dev` for the OTP
+     3. Enter the OTP on the verification screen
+     4. Once authenticated, you'll have access to all admin features
 
 2. **Post Status**: We've implemented three status options:
    - **Draft**: Posts that are still being worked on and not ready for publication
@@ -219,3 +238,61 @@ This plan outlines a comprehensive approach to implementing a personal blogging 
 - Secure admin area for managing all blog content
 
 The implementation leverages the existing project structure and authentication system, making it a natural extension of the current application. By following this plan, you'll have a fully functional personal blogging system that you can extend with additional features in the future.
+
+## 11. Admin Authentication Details
+
+The admin area is protected by an authentication system that uses email OTP (One-Time Password) for secure access. Here's how it works:
+
+### Authentication Flow
+
+1. User navigates to `/user/login`
+2. User enters their email address
+3. System generates a 6-digit OTP
+4. During development, instead of sending an actual email, the OTP is logged to the console
+5. User enters the OTP to complete authentication
+6. Upon successful verification, user is redirected to the home page
+7. Authenticated users can access all admin routes at `/admin/*`
+
+### Implementation Details
+
+The authentication is implemented using the "better-auth" library with the email OTP plugin:
+
+```typescript
+// From src/lib/auth.ts
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: "sqlite",
+    schema: schema,
+  }),
+
+  secondaryStorage,
+  secret: env.BETTER_AUTH_SECRET,
+
+  plugins: [
+    emailOTP({
+      sendVerificationOTP: async ({ email, otp, type }, request) => {
+        // send email to user with OTP
+        console.log({ email, otp, type })
+      },
+      otpLength: 6,
+      expiresIn: 300, // 5 minutes
+    }),
+  ],
+})
+```
+
+### Development Access Instructions
+
+To access the admin area during development:
+
+1. Navigate to the login page
+2. Enter any email address
+3. Check the terminal where you're running `bun dev`
+4. Look for a log entry containing your email and the OTP, which will look something like:
+   ```
+   { email: 'your@email.com', otp: '123456', type: 'sign-in' }
+   ```
+5. Enter the 6-digit OTP on the verification screen
+6. Once authenticated, you'll have full access to the admin dashboard and all blog management features
+
+This development-friendly approach allows for easy testing without setting up actual email sending, while still maintaining the security model of the production system.

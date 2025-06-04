@@ -32,15 +32,18 @@ export function LogoutButton({ className, authUrl }: LogoutButtonProps) {
   const authClient = setupAuthClient(authUrl)
 
   const handleSignOut = () => {
-    startTransition(() => {
-      authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            window.location.href = link("/user/login")
+    // Ensure we're in a browser environment before using window
+    if (typeof window !== 'undefined') {
+      startTransition(() => {
+        authClient.signOut({
+          fetchOptions: {
+            onSuccess: () => {
+              window.location.href = link("/user/login")
+            },
           },
-        },
+        })
       })
-    })
+    }
   }
 
   return (

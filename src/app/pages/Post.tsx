@@ -10,6 +10,7 @@ import {
 import { Button } from "@/app/shared/components/ui/button"
 import { link } from "@/app/shared/links"
 import { eq, and } from "drizzle-orm"
+import { PostContent } from "./components/PostContent"
 
 const Post = async ({ ctx, params }: { ctx: AppContext; params: { id: string } }) => {
   const { user } = ctx
@@ -62,11 +63,18 @@ const Post = async ({ ctx, params }: { ctx: AppContext; params: { id: string } }
           <CardTitle className="text-3xl">{blogPost.title}</CardTitle>
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Published: {new Date(blogPost.createdAt).toLocaleDateString()}</span>
-            {blogPost.status !== "published" && (
-              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
-                {blogPost.status.charAt(0).toUpperCase() + blogPost.status.slice(1)}
-              </span>
-            )}
+            <div className="flex gap-2">
+              {blogPost.format && (
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                  {blogPost.format.charAt(0).toUpperCase() + blogPost.format.slice(1)}
+                </span>
+              )}
+              {blogPost.status !== "published" && (
+                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                  {blogPost.status.charAt(0).toUpperCase() + blogPost.status.slice(1)}
+                </span>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -81,23 +89,15 @@ const Post = async ({ ctx, params }: { ctx: AppContext; params: { id: string } }
             ))}
           </div>
           <div className="prose max-w-none">
-            {/* In a real app, you'd render markdown here */}
-            <div dangerouslySetInnerHTML={{ __html: renderMarkdown(blogPost.content) }} />
+            <PostContent
+              content={blogPost.content}
+              format={blogPost.format || "markdown"}
+            />
           </div>
         </CardContent>
       </Card>
     </div>
   )
-}
-
-// Simple markdown rendering function (placeholder)
-function renderMarkdown(markdown: string) {
-  return markdown
-    .replace(/# (.*)/g, '<h1>$1</h1>')
-    .replace(/## (.*)/g, '<h2>$1</h2>')
-    .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*)\*/g, '<em>$1</em>')
-    .replace(/\n/g, '<br>')
 }
 
 export { Post }
