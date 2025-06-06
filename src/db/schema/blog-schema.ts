@@ -1,5 +1,14 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core"
 
+export const settings = sqliteTable("settings", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+})
+
 export const post = sqliteTable("post", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
@@ -34,3 +43,4 @@ export const postToTag = sqliteTable("post_to_tag", {
 export type Post = typeof post.$inferSelect
 export type Tag = typeof tag.$inferSelect
 export type PostToTag = typeof postToTag.$inferSelect
+export type Settings = typeof settings.$inferSelect

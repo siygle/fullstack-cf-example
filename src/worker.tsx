@@ -5,12 +5,13 @@ import { Document } from "@/app/document/Document"
 import { setCommonHeaders } from "@/app/document/headers"
 
 import { Home } from "@/app/pages/Home"
-import { Landing } from "@/app/pages/Landing"
+// import { Landing } from "@/app/pages/Landing"
 import { Post } from "@/app/pages/Post"
 import { userRoutes } from "@/app/pages/user/routes"
 import { Dashboard } from "@/app/pages/admin/Dashboard"
 import { Posts } from "@/app/pages/admin/Posts"
 import { PostEditor } from "@/app/pages/admin/PostEditor"
+import { Settings } from "@/app/pages/admin/Settings"
 import { auth } from "@/lib/auth"
 import { User } from "@/db/schema/auth-schema"
 import { link } from "@/app/shared/links"
@@ -56,13 +57,13 @@ export default defineApp([
   }),
 
   render(Document, [
-    route("/", Landing),
-    route("/home", Home),
+    route("/", Home),
     route("/post/:id", Post),
     prefix("/user", userRoutes),
     route("/admin", [isAuthenticated, Dashboard]),
     route("/admin/posts", [isAuthenticated, Posts]),
     route("/admin/post", [isAuthenticated, PostEditor]),
     route("/admin/post/:id", [isAuthenticated, PostEditor]),
+    route("/admin/setting", [isAuthenticated, Settings]),
   ]),
 ])

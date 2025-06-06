@@ -100,6 +100,9 @@ const Dashboard = async ({ ctx }: { ctx: AppContext }) => {
             <Button asChild className="w-full">
               <a href="/admin/post">Write New Post</a>
             </Button>
+            <Button asChild className="w-full" variant="outline">
+              <a href="/admin/setting">Blog Settings</a>
+            </Button>
           </CardContent>
         </Card>
         
