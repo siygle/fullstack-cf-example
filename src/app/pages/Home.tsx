@@ -1,5 +1,5 @@
 import { db } from "@/db/db"
-import { post, tag, postToTag, settings } from "@/db/schema"
+import { post, tag, postToTag } from "@/db/schema"
 import { LogoutButton } from "@/app/shared/components"
 import { AppContext } from "@/worker"
 import {
@@ -11,6 +11,7 @@ import {
 import { Button } from "@/app/shared/components/ui/button"
 import { link } from "@/app/shared/links"
 import { eq } from "drizzle-orm"
+import { BLOG_SETTINGS } from "@/config/settings"
 
 const Home = async ({ ctx, request }: { ctx: AppContext; request: Request }) => {
   const { user, authUrl } = ctx
@@ -19,17 +20,9 @@ const Home = async ({ ctx, request }: { ctx: AppContext; request: Request }) => 
   const url = new URL(request.url)
   const currentPage = parseInt(url.searchParams.get("page") || "1")
   
-  // Fetch blog title and pagination settings
-  const blogTitleSetting = await db.query.settings.findFirst({
-    where: (settings, { eq }) => eq(settings.key, "blog_title"),
-  })
-  
-  const paginationSetting = await db.query.settings.findFirst({
-    where: (settings, { eq }) => eq(settings.key, "pagination_count"),
-  })
-  
-  const blogTitle = blogTitleSetting?.value || "Blog Posts"
-  const paginationCount = parseInt(paginationSetting?.value || "10")
+  // Use settings from BLOG_SETTINGS
+  const blogTitle = BLOG_SETTINGS.blogTitle
+  const paginationCount = BLOG_SETTINGS.paginationCount
   
   // Calculate offset for pagination
   const offset = (currentPage - 1) * paginationCount
