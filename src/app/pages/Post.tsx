@@ -10,7 +10,7 @@ import {
 import { Button } from "@/app/shared/components/ui/button"
 import { link } from "@/app/shared/links"
 import { eq, and } from "drizzle-orm"
-import { PostContent } from "./components/PostContent"
+import { PostContentShell } from "./components/PostContentShell"
 
 const Post = async ({ ctx, params }: { ctx: AppContext; params: { id: string } }) => {
   const { user } = ctx
@@ -49,7 +49,7 @@ const Post = async ({ ctx, params }: { ctx: AppContext; params: { id: string } }
     <div className="p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <Button asChild variant="outline">
-          <a href={link("/home")}>← Back to Posts</a>
+          <a href={link("/")}>← Back to Posts</a>
         </Button>
         {user && (
           <Button asChild>
@@ -89,9 +89,10 @@ const Post = async ({ ctx, params }: { ctx: AppContext; params: { id: string } }
             ))}
           </div>
           <div className="prose max-w-none">
-            <PostContent
+            <PostContentShell
               content={blogPost.content}
               format={blogPost.format || "markdown"}
+              postId={blogPost.id}
             />
           </div>
         </CardContent>

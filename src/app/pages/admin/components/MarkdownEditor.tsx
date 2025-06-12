@@ -158,31 +158,31 @@ export function MarkdownEditor({ id, name, value, onChange }: MarkdownEditorProp
   const embedActions = [
     {
       icon: "𝕏",
-      label: "Embed Twitter/X Post",
+      label: "嵌入 Twitter/X 帖子",
       onClick: () => {
-        const url = prompt("Enter Twitter/X post URL:")
+        const url = prompt("请输入 Twitter/X 帖子链接:");
         if (url) {
-          insertAtCursor(`{{twitter:${url}}}`, "\n")
-        }
-      }
-    },
-    {
-      icon: "🐘",
-      label: "Embed Mastodon Post",
-      onClick: () => {
-        const url = prompt("Enter Mastodon post URL:")
-        if (url) {
-          insertAtCursor(`{{mastodon:${url}}}`, "\n")
+          insertAtCursor(`{{twitter:${url}}}`, "\n");
         }
       }
     },
     {
       icon: "🦋",
-      label: "Embed BlueSky Post",
+      label: "嵌入 Bluesky 帖子",
       onClick: () => {
-        const url = prompt("Enter BlueSky post URL:")
+        const url = prompt("请输入 Bluesky 帖子链接:");
         if (url) {
-          insertAtCursor(`{{bluesky:${url}}}`, "\n")
+          insertAtCursor(`{{bluesky:${url}}}`, "\n");
+        }
+      }
+    },
+    {
+      icon: "▶️",
+      label: "嵌入 YouTube 视频",
+      onClick: () => {
+        const url = prompt("请输入 YouTube 视频链接:");
+        if (url) {
+          insertAtCursor(`{{youtube:${url}}}`, "\n");
         }
       }
     }
