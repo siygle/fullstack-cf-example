@@ -56,6 +56,42 @@ export default defineApp([
     return auth.handler(request)
   }),
 
+  route("/api/bluesky-oembed", async ({ request }) => {
+    const url = new URL(request.url)
+    const blueskyUrl = url.searchParams.get('url')
+    
+    if (!blueskyUrl) {
+      return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    try {
+      const oembedUrl = `https://embed.bsky.app/oembed?url=${encodeURIComponent(blueskyUrl)}&format=json`
+      const response = await fetch(oembedUrl)
+      
+      if (!response.ok) {
+        throw new Error(`oEmbed request failed: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      return new Response(JSON.stringify(data), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      })
+    } catch (error) {
+      console.error('Error fetching Bluesky oEmbed:', error)
+      return new Response(JSON.stringify({ error: 'Failed to fetch oEmbed data' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+  }),
+
   render(Document, [
     route("/", Home),
     route("/post/:id", Post),

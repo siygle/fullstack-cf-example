@@ -14,9 +14,13 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    include: ['swr'],
     esbuildOptions: {
       target: 'esnext'
     }
+  },
+  ssr: {
+    noExternal: []
   },
   build: {
     target: 'esnext'
