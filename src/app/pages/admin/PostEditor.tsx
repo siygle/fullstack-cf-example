@@ -9,8 +9,9 @@ import {
 } from "@/app/shared/components/ui/card"
 import { Button } from "@/app/shared/components/ui/button"
 import { PostForm } from "@/app/pages/admin/components/PostForm"
-import { eq } from "drizzle-orm"
+import { eq, ne } from "drizzle-orm"
 import { nanoid } from "nanoid"
+import { generateSlug, generateUniqueSlug } from "@/lib/url-utils"
 
 const PostEditor = async ({ ctx, params, request }: { ctx: AppContext; params?: { id?: string }; request: Request }) => {
   const postId = params?.id
@@ -45,6 +46,31 @@ const PostEditor = async ({ ctx, params, request }: { ctx: AppContext; params?: 
     const status = formData.get("status") as string
     const format = formData.get("format") as string || "markdown" // Default to markdown if not specified
     const tagNames = (formData.get("tags") as string).split(",").map(t => t.trim()).filter(Boolean)
+    const slugInput = formData.get("slug") as string
+    const publishedDateInput = formData.get("publishedDate") as string
+    
+    // Handle slug generation
+    let slug = slugInput
+    if (!slug) {
+      // Generate slug from title
+      slug = generateSlug(title)
+    }
+    
+    // Ensure slug is unique (check against other posts, excluding current post)
+    if (slug) {
+      const existingSlugs = await db
+        .select({ slug: post.slug })
+        .from(post)
+        .where(postId ? ne(post.id, postId) : undefined)
+        .then(rows => rows.map(r => r.slug).filter((slug): slug is string => slug !== null))
+      
+      if (existingSlugs.includes(slug)) {
+        slug = generateUniqueSlug(title, existingSlugs)
+      }
+    }
+    
+    // Handle published date
+    const publishedDate = publishedDateInput ? new Date(publishedDateInput) : new Date()
     
     let currentPostId = postId
     
@@ -55,7 +81,9 @@ const PostEditor = async ({ ctx, params, request }: { ctx: AppContext; params?: 
           title,
           content,
           status,
-          format, // Add format field
+          format,
+          slug,
+          publishedDate,
           updatedAt: new Date(),
         })
         .where(eq(post.id, currentPostId))
@@ -67,7 +95,9 @@ const PostEditor = async ({ ctx, params, request }: { ctx: AppContext; params?: 
         title,
         content,
         status,
-        format, // Add format field
+        format,
+        slug,
+        publishedDate,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

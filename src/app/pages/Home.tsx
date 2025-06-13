@@ -12,6 +12,7 @@ import { Button } from "@/app/shared/components/ui/button"
 import { link } from "@/app/shared/links"
 import { eq } from "drizzle-orm"
 import { BLOG_SETTINGS } from "@/config/settings"
+import { generatePostUrl } from "@/lib/url-utils"
 
 const Home = async ({ ctx, request }: { ctx: AppContext; request: Request }) => {
   const { user, authUrl } = ctx
@@ -116,7 +117,7 @@ const Home = async ({ ctx, request }: { ctx: AppContext; request: Request }) => 
                 </div>
                 <div className="mt-4">
                   <Button asChild variant="outline">
-                    <a href={`/post/${post.id}`}>Read More</a>
+                    <a href={post.slug ? generatePostUrl(post) : `/post/${post.id}`}>Read More</a>
                   </Button>
                 </div>
               </CardContent>

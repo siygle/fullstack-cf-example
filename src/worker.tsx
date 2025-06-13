@@ -7,6 +7,7 @@ import { setCommonHeaders } from "@/app/document/headers"
 import { Home } from "@/app/pages/Home"
 // import { Landing } from "@/app/pages/Landing"
 import { Post } from "@/app/pages/Post"
+import { PostByUrl } from "@/app/pages/PostByUrl"
 import { userRoutes } from "@/app/pages/user/routes"
 import { Dashboard } from "@/app/pages/admin/Dashboard"
 import { Posts } from "@/app/pages/admin/Posts"
@@ -101,5 +102,7 @@ export default defineApp([
     route("/admin/post", [isAuthenticated, PostEditor]),
     route("/admin/post/:id", [isAuthenticated, PostEditor]),
     route("/admin/setting", [isAuthenticated, Settings]),
+    // Dynamic route for custom post URLs - must be last to act as catch-all
+    route("/:path*", PostByUrl),
   ]),
 ])

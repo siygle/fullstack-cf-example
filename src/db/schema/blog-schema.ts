@@ -17,6 +17,11 @@ export const post = sqliteTable("post", {
   status: text("status").notNull().$defaultFn(() => "draft"),
   // Format can be: "markdown", "html", "text"
   format: text("format").notNull().$defaultFn(() => "markdown"),
+  // URL slug for the post (used in custom URL patterns)
+  slug: text("slug"),
+  // Publication date for the post (used in URL patterns, defaults to createdAt)
+  publishedDate: integer("published_date", { mode: "timestamp" })
+    .$defaultFn(() => new Date()),
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),

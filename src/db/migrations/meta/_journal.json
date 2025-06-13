@@ -29,6 +29,13 @@
       "when": 1749063087930,
       "tag": "0003_add_settings_table",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1749840639560,
+      "tag": "0004_add-post-slug-and-published-date",
+      "breakpoints": true
     }
   ]
 }

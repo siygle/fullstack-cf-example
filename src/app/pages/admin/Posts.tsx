@@ -10,6 +10,7 @@ import {
 import { Button } from "@/app/shared/components/ui/button"
 import { link } from "@/app/shared/links"
 import { eq } from "drizzle-orm"
+import { generatePostUrl } from "@/lib/url-utils"
 
 const Posts = async ({ ctx }: { ctx: AppContext }) => {
   // Fetch all posts
@@ -73,9 +74,23 @@ const Posts = async ({ ctx }: { ctx: AppContext }) => {
                     {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Created: {new Date(post.createdAt).toLocaleDateString()}</span>
-                  <span>Updated: {new Date(post.updatedAt).toLocaleDateString()}</span>
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Created: {new Date(post.createdAt).toLocaleDateString()}</span>
+                    <span>Updated: {new Date(post.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                  {post.slug && (
+                    <div>
+                      <span className="font-medium">URL: </span>
+                      <code className="bg-muted px-1 rounded text-xs">{generatePostUrl(post)}</code>
+                    </div>
+                  )}
+                  {post.publishedDate && (
+                    <div>
+                      <span className="font-medium">Published: </span>
+                      {new Date(post.publishedDate).toLocaleDateString()}
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -94,7 +109,7 @@ const Posts = async ({ ctx }: { ctx: AppContext }) => {
                     <a href={`/admin/post/${post.id}`}>Edit</a>
                   </Button>
                   <Button asChild variant="outline">
-                    <a href={`/post/${post.id}`} target="_blank">View</a>
+                    <a href={post.slug ? generatePostUrl(post) : `/post/${post.id}`} target="_blank">View</a>
                   </Button>
                   <Button variant="destructive">Delete</Button>
                 </div>
