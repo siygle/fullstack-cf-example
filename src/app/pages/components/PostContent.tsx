@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import { BlueskyEmbedOfficial } from "../../shared/components/embeds/BlueskyEmbedOfficial"
+import { detectEmbedType as routerDetectEmbedType } from "../../shared/components/embeds/EmbedRouter"
 
 interface PostContentProps {
   content: string;
@@ -261,10 +263,19 @@ function SimpleEmbed({ type, url }: { type: string; url: string }) {
     if (blueskyData && blueskyData.html) {
       return (
         <div className="my-6 flex justify-center">
-          <div
-            className="w-full max-w-lg"
-            dangerouslySetInnerHTML={{ __html: blueskyData.html }}
-          />
+          <div className="w-full max-w-lg">
+            <div 
+              className="bluesky-embed-container"
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                overflow: 'hidden',
+                boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)'
+              }}
+              dangerouslySetInnerHTML={{ __html: blueskyData.html }}
+            />
+          </div>
         </div>
       );
     }
@@ -272,39 +283,35 @@ function SimpleEmbed({ type, url }: { type: string; url: string }) {
     // Loading state or fallback
     return (
       <div className="my-6 flex justify-center">
-        <div className="w-full max-w-lg border border-slate-200 rounded-xl p-6 bg-white shadow-sm">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-sky-400 rounded-full flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        <div className="w-full max-w-lg border border-slate-200 rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-sky-400 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.017-.276.035-.415.056-2.67-.296-5.568.628-6.383 3.364C.378 17.58 0 22.54 0 23.23c0 .687.139 1.86.902 2.202.659.299 1.664.621 4.3-1.24 2.752-1.942 5.711-5.881 6.798-7.995z"/>
+                <path d="M24 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C14.566.944 13.561 1.266 12.902 1.565c-.763.343-.902 1.515-.902 2.203 0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.017-.276.035-.415.056-2.67-.296-5.568.628-6.383 3.364-.246.829-.624 5.789-.624 6.479 0 .687.139 1.86.902 2.202.659.299 1.664.621 4.3-1.24 2.752-1.942 5.711-5.881 6.798-7.995z"/>
               </svg>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <h3 className="font-semibold text-slate-900 truncate">
-                  {blueskyData?.author_name || 'Bluesky User'}
-                </h3>
-                <span className="text-sm text-slate-500">@{blueskyData?.author_url?.split('/').pop() || 'user'}</span>
-              </div>
-              <p className="text-slate-700 mb-4 leading-relaxed">
-                {blueskyData ? 'Loading Bluesky post...' : 'View this post on Bluesky to see the full content and engage with the community.'}
+            <div className="flex-1">
+              <h3 className="font-semibold text-slate-900">Bluesky Post</h3>
+              <p className="text-sm text-slate-600">
+                {blueskyData ? 'Loading content...' : 'Loading from Bluesky...'}
               </p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Bluesky</span>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-sky-400 text-white rounded-lg hover:shadow-md transition-all duration-200 text-sm font-medium"
-                >
-                  View on Bluesky
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
             </div>
           </div>
+          <p className="text-slate-700 mb-4 text-sm">
+            View this post on Bluesky to see the full content and engage with the community.
+          </p>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-sky-400 text-white rounded-lg hover:from-blue-600 hover:to-sky-500 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+          >
+            Open on Bluesky
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
         </div>
       </div>
     );
@@ -419,13 +426,16 @@ export function PostContent({ content, format }: PostContentProps) {
           return <SimpleEmbed key={i} type="twitter" url={twitterMatch[1]} />;
         }
         if (blueskyMatch) {
-          return <SimpleEmbed key={i} type="bluesky" url={blueskyMatch[1]} />;
+          return <BlueskyEmbedOfficial key={i} url={blueskyMatch[1]} />;
         }
         if (youtubeMatch) {
           return <SimpleEmbed key={i} type="youtube" url={youtubeMatch[1]} />;
         }
         if (embedMatch) {
-          const embedType = detectEmbedType(embedMatch[1]);
+          const embedType = routerDetectEmbedType(embedMatch[1]);
+          if (embedType === 'bluesky') {
+            return <BlueskyEmbedOfficial key={i} url={embedMatch[1]} />;
+          }
           return <SimpleEmbed key={i} type={embedType} url={embedMatch[1]} />;
         }
         

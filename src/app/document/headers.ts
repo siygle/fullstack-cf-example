@@ -27,6 +27,6 @@ export const setCommonHeaders =
     // Defines trusted sources for content loading and script execution:
     headers.set(
       "Content-Security-Policy",
-      `default-src 'self'; script-src 'self' 'nonce-${nonce}' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://embed.bsky.app; frame-src https://challenges.cloudflare.com https://www.youtube.com https://platform.twitter.com https://twitter.com https://x.com https://embed.bsky.app; object-src 'none';`,
+      `default-src 'self'; script-src 'self' 'nonce-${nonce}' https://challenges.cloudflare.com https://embed.bsky.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://embed.bsky.app https://public.api.bsky.app https://bsky.social; frame-src https://challenges.cloudflare.com https://www.youtube.com https://platform.twitter.com https://twitter.com https://x.com https://embed.bsky.app; object-src 'none';`,
     )
   }

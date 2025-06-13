@@ -139,3 +139,40 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Bluesky embed container styling */
+  .bluesky-embed-container {
+    /* Reset default styles that might interfere */
+    & iframe,
+    & blockquote {
+      border: none !important;
+      background: white !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+    
+    /* Ensure proper text rendering */
+    & * {
+      font-family: var(--font-body) !important;
+      line-height: 1.5 !important;
+    }
+    
+    /* Handle Bluesky's specific embed elements */
+    & .bluesky-embed {
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      background: white !important;
+    }
+    
+    /* Responsive iframe handling */
+    & iframe {
+      min-height: 200px;
+      height: auto;
+    }
+  }
+}

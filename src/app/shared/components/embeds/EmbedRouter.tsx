@@ -3,7 +3,7 @@
 import React from 'react';
 import { YouTubeEmbed } from './YouTubeEmbed';
 import { TwitterEmbed } from './TwitterEmbed';
-import { BlueskyEmbed } from './BlueskyEmbed';
+import { BlueskyEmbedOfficial } from './BlueskyEmbedOfficial';
 
 interface EmbedRouterProps {
   url: string;
@@ -93,7 +93,7 @@ export function EmbedRouter({ url }: EmbedRouterProps) {
       return <TwitterEmbed url={cleanUrl} />;
     
     case 'bluesky':
-      return <BlueskyEmbed url={cleanUrl} />;
+      return <BlueskyEmbedOfficial url={cleanUrl} />;
     
     case 'unknown':
     default:
