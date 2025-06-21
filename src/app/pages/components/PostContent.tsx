@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react"
 import { BlueskyEmbedOfficial } from "../../shared/components/embeds/BlueskyEmbedOfficial"
 import { detectEmbedType as routerDetectEmbedType } from "../../shared/components/embeds/EmbedRouter"
+import { LinkPreview, EnhancedLink } from "../../shared/components/LinkPreview"
+import { CardPreview } from "../../shared/components/CardPreview"
 
 interface PostContentProps {
   content: string;
@@ -107,8 +109,11 @@ function processInlineMarkdown(text: string): string {
   // Handle inline code
   processed = processed.replace(/`(.*?)`/g, '<code class="bg-slate-100 text-slate-800 px-2 py-1 rounded text-sm font-mono">$1</code>');
   
-  // Handle links
-  processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors" target="_blank" rel="noopener noreferrer">$1</a>');
+  // Handle links - now with enhanced preview support
+  processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+    // Check if this should be a preview link (standalone links on their own lines will be handled separately)
+    return `<a href="${url}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors" target="_blank" rel="noopener noreferrer">${text}</a>`;
+  });
   
   return processed;
 }
@@ -350,8 +355,13 @@ function SimpleEmbed({ type, url }: { type: string; url: string }) {
 
 // Process content to handle embed syntax and detect URLs
 function processContent(content: string): string {
+  // Convert {{card:url}} syntax to [card]url[/card] format
+  let processed = content.replace(/\{\{card:([^}]+)\}\}/g, (match, url) => {
+    return `[card]${url.trim()}[/card]`;
+  });
+  
   // Convert {type:url} syntax to [type]url[/type] format
-  let processed = content.replace(/\{([^:]+):([^}]+)\}/g, (match, type, url) => {
+  processed = processed.replace(/\{([^:]+):([^}]+)\}/g, (match, type, url) => {
     return `[${type}]${url}[/${type}]`;
   });
   
@@ -361,7 +371,7 @@ function processContent(content: string): string {
     const trimmedLine = line.trim();
     
     // Skip if line already has embed syntax or is part of markdown link
-    if (trimmedLine.match(/^\[(?:twitter|bluesky|youtube|embed)\]/) ||
+    if (trimmedLine.match(/^\[(?:twitter|bluesky|youtube|embed|card)\]/) ||
         trimmedLine.includes('](') ||
         trimmedLine.includes('[') ||
         !trimmedLine.startsWith('http')) {
@@ -407,7 +417,58 @@ export function PostContent({ content, format }: PostContentProps) {
   }
 
   // For markdown format, process content and check for embeds
-  const processedContent = processContent(content);
+  let processedContent = processContent(content);
+  
+  // Store aside blocks in a separate array to avoid encoding issues
+  const asideBlocks: string[] = [];
+  
+  // Handle aside blocks BEFORE line-by-line processing
+  processedContent = processedContent.replace(/<aside>\s*([\s\S]*?)\s*<\/aside>/g, (match, asideContent) => {
+    const cleanContent = asideContent.trim();
+    const processedAside = cleanContent
+      .split('\n')
+      .map((line: string) => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return '<div class="h-4"></div>';
+        
+        // Handle headings in aside
+        if (trimmedLine.startsWith('# ')) {
+          return `<h1 class="text-2xl font-bold text-amber-900 mb-4 mt-0 leading-tight">${escapeHtml(trimmedLine.slice(2))}</h1>`;
+        }
+        if (trimmedLine.startsWith('## ')) {
+          return `<h2 class="text-xl font-bold text-amber-900 mb-3 mt-0 leading-tight">${escapeHtml(trimmedLine.slice(3))}</h2>`;
+        }
+        if (trimmedLine.startsWith('### ')) {
+          return `<h3 class="text-lg font-bold text-amber-900 mb-2 mt-0 leading-tight">${escapeHtml(trimmedLine.slice(4))}</h3>`;
+        }
+        if (trimmedLine.startsWith('#### ')) {
+          return `<h4 class="text-base font-bold text-amber-900 mb-2 mt-0 leading-tight">${escapeHtml(trimmedLine.slice(5))}</h4>`;
+        }
+        
+        // Handle blockquotes in aside
+        if (trimmedLine.startsWith('> ')) {
+          return `<blockquote class="border-l-4 border-amber-600 pl-4 py-2 my-3 bg-amber-100 text-amber-800 italic">${escapeHtml(trimmedLine.slice(2))}</blockquote>`;
+        }
+        
+        // Handle lists in aside
+        if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+          return `<li class="ml-6 mb-2 list-disc text-amber-900">${processInlineMarkdown(trimmedLine.slice(2))}</li>`;
+        }
+        if (trimmedLine.match(/^\d+\. /)) {
+          return `<li class="ml-6 mb-2 list-decimal text-amber-900">${processInlineMarkdown(trimmedLine.replace(/^\d+\. /, ''))}</li>`;
+        }
+        
+        // Default paragraph in aside
+        return `<p class="mb-4 text-amber-900 leading-relaxed">${processInlineMarkdown(trimmedLine)}</p>`;
+      })
+      .join('\n');
+
+    // Store the processed aside content and return a simple marker
+    const asideIndex = asideBlocks.length;
+    asideBlocks.push(processedAside);
+    return `ASIDE_BLOCK_${asideIndex}`;
+  });
+  
   const lines = processedContent.split('\n');
   
   return (
@@ -415,11 +476,44 @@ export function PostContent({ content, format }: PostContentProps) {
       {lines.map((line, i) => {
         const trimmedLine = line.trim();
         
+        // Handle aside blocks
+        if (trimmedLine.startsWith('ASIDE_BLOCK_')) {
+          const asideIndex = parseInt(trimmedLine.replace('ASIDE_BLOCK_', ''));
+          const asideContent = asideBlocks[asideIndex];
+          
+          if (asideContent) {
+            return (
+              <aside 
+                key={i} 
+                className="relative border-l-4 border-amber-400 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 rounded-r-lg p-6 my-6 shadow-sm w-full"
+              >
+                <div className="absolute -left-3 top-4 w-6 h-6 bg-amber-400 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-amber-800" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div 
+                  className="max-w-none text-amber-900" 
+                  dangerouslySetInnerHTML={{ __html: asideContent }}
+                />
+              </aside>
+            );
+          } else {
+            return <div key={i} className="text-red-500">Aside block not found</div>;
+          }
+        }
+        
         // Check for embed syntax patterns (both old and new)
         const twitterMatch = trimmedLine.match(/^\[twitter\](.*?)\[\/twitter\]$/);
         const blueskyMatch = trimmedLine.match(/^\[bluesky\](.*?)\[\/bluesky\]$/);
         const youtubeMatch = trimmedLine.match(/^\[youtube\](.*?)\[\/youtube\]$/);
         const embedMatch = trimmedLine.match(/^\[embed\](.*?)\[\/embed\]$/);
+        const cardMatch = trimmedLine.match(/^\[card\](.*?)\[\/card\]$/);
+        
+        // Handle card syntax
+        if (cardMatch) {
+          return <CardPreview key={i} url={cardMatch[1]} />;
+        }
         
         // Handle embed syntax with simple embed component
         if (twitterMatch) {
@@ -437,6 +531,15 @@ export function PostContent({ content, format }: PostContentProps) {
             return <BlueskyEmbedOfficial key={i} url={embedMatch[1]} />;
           }
           return <SimpleEmbed key={i} type={embedType} url={embedMatch[1]} />;
+        }
+        
+        // Check for standalone URLs that should become link previews
+        if (trimmedLine.match(/^https?:\/\/[^\s]+$/)) {
+          // Don't show preview for URLs that are already handled as embeds
+          const embedType = detectEmbedType(trimmedLine);
+          if (embedType === 'unknown') {
+            return <LinkPreview key={i} url={trimmedLine} />;
+          }
         }
         
         // Skip empty lines that are just spacing

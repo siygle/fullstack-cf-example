@@ -93,6 +93,138 @@ export default defineApp([
     }
   }),
 
+  route("/api/metadata", async ({ request }) => {
+    const url = new URL(request.url)
+    const targetUrl = url.searchParams.get('url')
+    
+    if (!targetUrl) {
+      return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Validate URL
+    try {
+      new URL(targetUrl)
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid URL' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    try {
+      const response = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Blog-Card-Bot/1.0)',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
+      const html = await response.text()
+      
+      // Extract metadata using simple regex patterns
+      const getMetaContent = (property: string) => {
+        const patterns = [
+          new RegExp(`<meta\\s+property=["']${property}["']\\s+content=["']([^"']*?)["']`, 'is'),
+          new RegExp(`<meta\\s+content=["']([^"']*?)["']\\s+property=["']${property}["']`, 'is'),
+          new RegExp(`<meta\\s+name=["']${property}["']\\s+content=["']([^"']*?)["']`, 'is'),
+          new RegExp(`<meta\\s+content=["']([^"']*?)["']\\s+name=["']${property}["']`, 'is'),
+          // Handle cases without quotes around attribute values
+          new RegExp(`<meta\\s+property=${property}\\s+content=["']([^"']*?)["']`, 'is'),
+          new RegExp(`<meta\\s+name=${property}\\s+content=["']([^"']*?)["']`, 'is'),
+        ]
+        
+        for (const pattern of patterns) {
+          const match = html.match(pattern)
+          if (match && match[1]) {
+            return match[1].trim()
+          }
+        }
+        return null
+      }
+      
+      // Get title from <title> tag if og:title not found
+      const getTitle = () => {
+        const ogTitle = getMetaContent('og:title')
+        if (ogTitle) return ogTitle
+        
+        const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i)
+        return titleMatch ? titleMatch[1].trim() : null
+      }
+      
+      // Extract favicon
+      const getFavicon = () => {
+        const patterns = [
+          /<link[^>]+rel=["'](?:shortcut )?icon["'][^>]+href=["']([^"']+)["']/i,
+          /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut )?icon["']/i,
+        ]
+        
+        for (const pattern of patterns) {
+          const match = html.match(pattern)
+          if (match && match[1]) {
+            const faviconUrl = match[1]
+            // Convert relative URLs to absolute
+            if (faviconUrl.startsWith('/')) {
+              const baseUrl = new URL(targetUrl)
+              return `${baseUrl.protocol}//${baseUrl.host}${faviconUrl}`
+            }
+            if (!faviconUrl.startsWith('http')) {
+              const baseUrl = new URL(targetUrl)
+              return `${baseUrl.protocol}//${baseUrl.host}/${faviconUrl}`
+            }
+            return faviconUrl
+          }
+        }
+        
+        // Fallback to default favicon location
+        const baseUrl = new URL(targetUrl)
+        return `${baseUrl.protocol}//${baseUrl.host}/favicon.ico`
+      }
+      
+      const metadata = {
+        title: getTitle(),
+        description: getMetaContent('og:description') || getMetaContent('description'),
+        image: getMetaContent('og:image'),
+        siteName: getMetaContent('og:site_name'),
+        url: getMetaContent('og:url') || targetUrl,
+        favicon: getFavicon(),
+        domain: new URL(targetUrl).hostname,
+      }
+      
+      return new Response(JSON.stringify(metadata), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        }
+      })
+    } catch (error) {
+      console.error('Error fetching metadata:', error)
+      
+      // Return basic fallback data
+      const fallback = {
+        title: new URL(targetUrl).hostname,
+        description: `Visit ${new URL(targetUrl).hostname}`,
+        siteName: new URL(targetUrl).hostname,
+        url: targetUrl,
+        domain: new URL(targetUrl).hostname,
+        error: true,
+      }
+      
+      return new Response(JSON.stringify(fallback), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
+      })
+    }
+  }),
+
   render(Document, [
     route("/", Home),
     route("/post/:id", Post),

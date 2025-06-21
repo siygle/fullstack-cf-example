@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `bun build` - Build production bundle
 - `bun preview` - Preview production build locally
 - `bun types` - Run TypeScript type checking
+- `bun dev:init` - Initialize development environment (RW scripts)
 
 ### Database Management
 - `bun migrate:new --name="migration_name"` - Generate new migration
@@ -66,13 +67,16 @@ This is a fullstack blog application built on Cloudflare infrastructure using:
 
 **Content Rendering**:
 - Server renders content shells with encoded data attributes
-- Client-side React hydrates these shells with formatted content
+- Client-side React hydrates these shells with formatted content using `createRoot()`
+- Progressive enhancement with fallback mechanisms for unprocessed content
 - Supports embeds (Bluesky, Twitter, YouTube) via dedicated components
+- Custom oEmbed proxy at `/api/bluesky-oembed` for Bluesky post embedding
 
 **Infrastructure Management**:
-- All Cloudflare resources defined in `alchemy.run.ts`
+- All Cloudflare resources defined in `alchemy.run.ts` 
 - Automatic type generation for environment variables in `types/env.d.ts`
 - Local development uses Wrangler for D1 database simulation
+- Running `bun infra:up` updates and overwrites `wrangler.jsonc` with actual resource IDs
 
 ### Development Workflow
 
@@ -83,4 +87,23 @@ This is a fullstack blog application built on Cloudflare infrastructure using:
 
 ### Testing and Quality
 
-Always run `bun types` before deployment to catch TypeScript errors. The project uses Prettier for code formatting with specific JSON/JSONC trailing comma configuration.
+Always run `bun types` before deployment to catch TypeScript errors. The project uses Prettier for code formatting with specific JSON/JSONC trailing comma configuration. Note: This project does not include automated tests - manual testing is required.
+
+### URL Routing Patterns
+
+The application supports flexible URL patterns for blog posts:
+- `/post/:id` - Access posts by database ID
+- `/:path*` - Dynamic catch-all route for custom post URLs (using `slug` field)
+- Custom URLs are resolved through the `PostByUrl` component, which acts as the final catch-all route
+
+### Post Management
+
+Posts support multiple formats and statuses:
+- **Formats**: `markdown`, `html`, `plain` (stored in `format` field)
+- **Statuses**: `published`, `draft`, `private` (stored in `status` field)
+- **URL Slugs**: Optional custom slugs for SEO-friendly URLs
+- **Publication Dates**: Separate from creation dates for scheduling
+
+### Environment Setup
+
+Create `.env` file (see `env.example` for reference) before running locally. The project uses Bun as the JavaScript runtime and package manager.
