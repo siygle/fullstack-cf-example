@@ -127,9 +127,10 @@ export default defineApp([
       
       const html = await response.text()
       
-      // Extract metadata using simple regex patterns
+      // Extract metadata using comprehensive regex patterns
       const getMetaContent = (property: string) => {
         const patterns = [
+          // Standard patterns with quotes
           new RegExp(`<meta\\s+property=["']${property}["']\\s+content=["']([^"']*?)["']`, 'is'),
           new RegExp(`<meta\\s+content=["']([^"']*?)["']\\s+property=["']${property}["']`, 'is'),
           new RegExp(`<meta\\s+name=["']${property}["']\\s+content=["']([^"']*?)["']`, 'is'),
@@ -137,6 +138,12 @@ export default defineApp([
           // Handle cases without quotes around attribute values
           new RegExp(`<meta\\s+property=${property}\\s+content=["']([^"']*?)["']`, 'is'),
           new RegExp(`<meta\\s+name=${property}\\s+content=["']([^"']*?)["']`, 'is'),
+          // Handle mixed quote types
+          new RegExp(`<meta\\s+property=['"]${property}['"]\\s+content=['"]([^'"]*?)['"]`, 'is'),
+          new RegExp(`<meta\\s+content=['"]([^'"]*?)['"]\\s+property=['"]${property}['"]`, 'is'),
+          // Handle spaces and other attributes
+          new RegExp(`<meta[^>]*property=['"]${property}['"][^>]*content=['"]([^'"]*?)['"]`, 'is'),
+          new RegExp(`<meta[^>]*content=['"]([^'"]*?)['"][^>]*property=['"]${property}['"]`, 'is'),
         ]
         
         for (const pattern of patterns) {
@@ -186,10 +193,27 @@ export default defineApp([
         return `${baseUrl.protocol}//${baseUrl.host}/favicon.ico`
       }
       
+      // Extract and normalize Open Graph image
+      const getOGImage = () => {
+        const ogImage = getMetaContent('og:image')
+        if (!ogImage) return null
+        
+        // Convert relative URLs to absolute
+        if (ogImage.startsWith('/')) {
+          const baseUrl = new URL(targetUrl)
+          return `${baseUrl.protocol}//${baseUrl.host}${ogImage}`
+        }
+        if (!ogImage.startsWith('http')) {
+          const baseUrl = new URL(targetUrl)
+          return `${baseUrl.protocol}//${baseUrl.host}/${ogImage}`
+        }
+        return ogImage
+      }
+
       const metadata = {
         title: getTitle(),
         description: getMetaContent('og:description') || getMetaContent('description'),
-        image: getMetaContent('og:image'),
+        image: getOGImage(),
         siteName: getMetaContent('og:site_name'),
         url: getMetaContent('og:url') || targetUrl,
         favicon: getFavicon(),
@@ -222,6 +246,52 @@ export default defineApp([
           'Access-Control-Allow-Origin': '*',
         }
       })
+    }
+  }),
+  
+  // Image proxy endpoint for OG images
+  route("/api/image-proxy", async ({ request }) => {
+    const url = new URL(request.url)
+    const imageUrl = url.searchParams.get('url')
+    
+    if (!imageUrl) {
+      return new Response('Missing url parameter', { status: 400 })
+    }
+
+    // Validate URL
+    try {
+      new URL(imageUrl)
+    } catch {
+      return new Response('Invalid URL', { status: 400 })
+    }
+
+    try {
+      const response = await fetch(imageUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Blog-Card-Bot/1.0)',
+          'Accept': 'image/*',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.startsWith('image/')) {
+        throw new Error('Not an image')
+      }
+      
+      return new Response(response.body, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
+          'Access-Control-Allow-Origin': '*',
+        }
+      })
+    } catch (error) {
+      console.error('Error proxying image:', error)
+      return new Response('Failed to load image', { status: 500 })
     }
   }),
 

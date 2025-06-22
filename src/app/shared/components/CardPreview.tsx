@@ -33,7 +33,9 @@ export function CardPreview({ url, className = "" }: CardPreviewProps) {
         }
         
         const data = await response.json() as CardMetadata
-        console.log('CardPreview metadata for', url, ':', data)
+        console.log('CardPreview metadata received:', data) // Debug log
+        console.log('Image URL:', data.image) // Debug log
+        console.log('Error status:', data.error) // Debug log
         setMetadata(data)
       } catch (err) {
         console.error('Error fetching metadata:', err)
@@ -87,7 +89,7 @@ export function CardPreview({ url, className = "" }: CardPreviewProps) {
       >
         <div className="border border-slate-300 rounded-lg bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-slate-400 relative overflow-hidden">
           {/* Main content */}
-          <div className={`p-6 ${metadata.image && !metadata.error ? 'pr-32' : ''}`}>
+          <div className={`p-6 ${metadata.image && !metadata.error ? 'pr-40' : ''}`}>
             <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-3 line-clamp-1">
               {metadata.title || metadata.domain}
             </h3>
@@ -122,26 +124,27 @@ export function CardPreview({ url, className = "" }: CardPreviewProps) {
           
           {/* OG Image - right side */}
           {metadata.image && !metadata.error && (
-            <div className="absolute top-4 right-4 w-24 h-16 rounded-lg overflow-hidden shadow-sm">
+            <div className="absolute top-4 right-4 w-32 h-20 rounded-lg overflow-hidden shadow-sm bg-gray-100">
               <img
-                src={metadata.image}
+                src={`/api/image-proxy?url=${encodeURIComponent(metadata.image)}`}
                 alt=""
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                onLoad={() => {
-                  console.log('CardPreview image loaded successfully:', metadata.image)
-                }}
                 onError={(e) => {
-                  console.error('CardPreview image failed to load:', metadata.image)
-                  // Hide the image container if it fails to load
+                  console.error('OG Image failed to load:', metadata.image)
+                  console.error('Error event:', e)
+                  // Show fallback placeholder on error
                   const container = e.currentTarget.parentElement
                   if (container) {
-                    container.style.display = 'none'
-                    // Also remove the right padding from the main content
-                    const mainContent = container.previousElementSibling as HTMLElement
-                    if (mainContent) {
-                      mainContent.classList.remove('pr-32')
-                    }
+                    container.innerHTML = `
+                      <div class="w-full h-full bg-red-100 border-2 border-red-300 flex items-center justify-center text-red-600 text-xs font-bold">
+                        IMAGE<br/>FAILED
+                      </div>
+                    `
                   }
+                }}
+                onLoad={(e) => {
+                  console.log('OG Image loaded successfully:', metadata.image)
+                  console.log('Image dimensions:', e.currentTarget.naturalWidth, 'x', e.currentTarget.naturalHeight)
                 }}
               />
             </div>
