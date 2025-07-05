@@ -1,9 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
-import { Textarea } from "@/app/shared/components/ui/textarea"
-import { Button } from "@/app/shared/components/ui/button"
-import { PostContent } from "../../components/PostContent"
+import React, { useState, useEffect } from 'react'
 
 interface BasicMarkdownEditorProps {
   id: string
@@ -13,56 +10,58 @@ interface BasicMarkdownEditorProps {
 }
 
 export function BasicMarkdownEditor({ id, name, value, onChange }: BasicMarkdownEditorProps) {
-  const [showPreview, setShowPreview] = useState(false)
+  const [MDEditor, setMDEditor] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const loadEditor = async () => {
+      try {
+        const { default: MDEditorComponent } = await import('@uiw/react-md-editor')
+        await import('@uiw/react-md-editor/markdown-editor.css')
+        await import('@uiw/react-markdown-preview/markdown.css')
+        setMDEditor(() => MDEditorComponent)
+        setMounted(true)
+      } catch (error) {
+        console.error('Failed to load MDEditor:', error)
+      }
+    }
+
+    loadEditor()
+  }, [])
+
+  if (!mounted || !MDEditor) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium">Content Editor</h3>
+        </div>
+        <div className="space-y-2">
+          <input type="hidden" name={name} value={value} />
+          <div className="border rounded-lg p-4 min-h-[400px] bg-gray-50 flex items-center justify-center">
+            <p className="text-gray-500">Loading editor...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Content Editor</h3>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={!showPreview ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowPreview(false)}
-          >
-            Edit
-          </Button>
-          <Button
-            type="button"
-            variant={showPreview ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowPreview(true)}
-          >
-            Preview
-          </Button>
-        </div>
       </div>
 
-      {!showPreview ? (
-        <div className="space-y-2">
-          <Textarea
-            id={id}
-            name={name}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="min-h-[400px] font-mono text-sm"
-            placeholder="Write your content here using Markdown syntax..."
-          />
-          <div className="text-xs text-gray-500">
-            <p>Markdown shortcuts: # Heading, **bold**, *italic*, `code`, - list</p>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <input type="hidden" name={name} value={value} />
-          <div className="border rounded-lg p-4 min-h-[400px] bg-white">
-            <div className="prose prose-sm max-w-none">
-              <PostContent content={value} format="markdown" />
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="space-y-2">
+        <input type="hidden" name={name} value={value} />
+        <MDEditor
+          value={value}
+          onChange={(val) => onChange(val || '')}
+          height={400}
+          preview="edit"
+          hideToolbar={false}
+          data-color-mode="light"
+        />
+      </div>
     </div>
   )
 }
