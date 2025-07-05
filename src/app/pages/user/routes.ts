@@ -7,7 +7,7 @@ const redirectIfAuthenticated = ({ ctx }: { ctx: AppContext }) => {
   if (ctx.user) {
     return new Response(null, {
       status: 302,
-      headers: { Location: link("/home") },
+      headers: { Location: link("/") },
     })
   }
 }

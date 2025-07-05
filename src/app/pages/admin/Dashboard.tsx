@@ -45,7 +45,7 @@ const Dashboard = async ({ ctx }: { ctx: AppContext }) => {
             <a href="/admin/post">Create New Post</a>
           </Button>
           <Button asChild variant="outline">
-            <a href={link("/home")}>View Blog</a>
+            <a href={link("/")}>View Blog</a>
           </Button>
         </div>
       </div>
