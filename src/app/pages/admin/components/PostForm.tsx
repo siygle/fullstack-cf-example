@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/app/shared/components/ui/button"
 import { Input } from "@/app/shared/components/ui/input"
 import { Label } from "@/app/shared/components/ui/label"
-import { MarkdownEditorWrapper } from "./MarkdownEditorWrapper"
+import { SimpleMarkdownEditor } from "./SimpleMarkdownEditor"
 import { Textarea } from "@/app/shared/components/ui/textarea"
 import { Post, Tag } from "@/db/schema/blog-schema"
 import { generateSlug, validateSlug, getUrlPatternExample } from "@/lib/url-utils"
@@ -201,7 +201,7 @@ export function PostForm({ post, tags = [] }: PostFormProps) {
         <input type="hidden" name="format" value={format} />
         
         {format === "markdown" ? (
-          <MarkdownEditorWrapper
+          <SimpleMarkdownEditor
             id="content"
             name="content"
             value={content}

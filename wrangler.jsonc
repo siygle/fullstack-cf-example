@@ -1,21 +1,18 @@
 {
-  "name": "redwoodsdk-cf-blog-site",
+  "name": "fullstack-cf-example-site",
   "main": "src/worker.tsx",
   "compatibility_date": "2025-04-20",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "dist/client", "binding": "ASSETS" },
   "kv_namespaces": [
-    {
-      "binding": "SESSIONS_KV",
-      "id": "__"
-    }
+    { "binding": "SESSIONS_KV", "id": "998eb8358a8443f9a2f6e24988c6131c" }
   ],
   "d1_databases": [
     {
       "binding": "DB",
-      "migrations_dir": "src/db/migrations",
-      "database_name": "__",
-      "database_id": "__"
+      "database_id": "c5a2087b-5b20-4a60-8313-a23837697f73",
+      "database_name": "fullstack-cf-example-site-users-db",
+      "migrations_dir": "src/db/migrations"
     }
   ]
 }

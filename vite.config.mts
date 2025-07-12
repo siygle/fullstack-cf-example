@@ -12,17 +12,5 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
-  optimizeDeps: {
-    include: ['swr'],
-    esbuildOptions: {
-      target: 'esnext'
-    }
-  },
-  ssr: {
-    noExternal: []
-  },
-  build: {
-    target: 'esnext'
   }
 })

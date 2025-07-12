@@ -1,10 +1,8 @@
 "use client"
 
-import React, { useState, useRef } from 'react'
-import { Textarea } from "@/app/shared/components/ui/textarea"
-import { Button } from "@/app/shared/components/ui/button"
-import { Card } from "@/app/shared/components/ui/card"
-import { PostContent } from "../../components/PostContent"
+import React, { useState, useEffect } from 'react'
+import { Textarea } from '@/app/shared/components/ui/textarea'
+import { Button } from '@/app/shared/components/ui/button'
 
 interface SimpleMarkdownEditorProps {
   id: string
@@ -14,148 +12,107 @@ interface SimpleMarkdownEditorProps {
 }
 
 export function SimpleMarkdownEditor({ id, name, value, onChange }: SimpleMarkdownEditorProps) {
-  const [mode, setMode] = useState<"edit" | "preview">("edit")
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write')
+  const [previewContent, setPreviewContent] = useState('')
 
-  // Toolbar actions
-  const insertText = (before: string, after: string = "") => {
-    const textarea = textareaRef.current
-    if (!textarea) return
+  // Simple markdown to HTML converter (SSR-safe)
+  const convertMarkdownToHtml = (markdown: string): string => {
+    let html = markdown
     
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = value.substring(start, end)
+    // Headers
+    html = html.replace(/^### (.*$)/gm, '<h3 class="text-lg font-bold mb-2">$1</h3>')
+    html = html.replace(/^## (.*$)/gm, '<h2 class="text-xl font-bold mb-3">$1</h2>')
+    html = html.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
     
-    const newText =
-      value.substring(0, start) +
-      before +
-      selectedText +
-      after +
-      value.substring(end)
+    // Bold and italic
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
+    html = html.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
     
-    onChange(newText)
+    // Code blocks
+    html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-900 text-white p-3 rounded overflow-x-auto"><code>$1</code></pre>')
+    html = html.replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm">$1</code>')
     
-    // Set cursor position after the operation
-    setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(
-        start + before.length,
-        start + before.length + selectedText.length
-      )
-    }, 0)
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:underline">$1</a>')
+    
+    // Line breaks
+    html = html.replace(/\n/g, '<br>')
+    
+    return html
   }
 
+  useEffect(() => {
+    if (activeTab === 'preview') {
+      setPreviewContent(convertMarkdownToHtml(value))
+    }
+  }, [activeTab, value])
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="flex gap-2">
-          <Button
+        <h3 className="text-lg font-medium">Content Editor</h3>
+        <div className="flex rounded-md border border-gray-300 overflow-hidden">
+          <button
             type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => insertText("# ", "\n")}
-            title="Heading 1"
+            onClick={() => setActiveTab('write')}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'write'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
           >
-            H1
-          </Button>
-          <Button
+            Write
+          </button>
+          <button
             type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => insertText("## ", "\n")}
-            title="Heading 2"
-          >
-            H2
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => insertText("**", "**")}
-            title="Bold"
-          >
-            B
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => insertText("*", "*")}
-            title="Italic"
-          >
-            I
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => insertText("`", "`")}
-            title="Code"
-          >
-            `
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => insertText("- ", "\n")}
-            title="List"
-          >
-            •
-          </Button>
-        </div>
-        <div className="flex space-x-2">
-          <Button
-            type="button"
-            variant={mode === "edit" ? "default" : "outline"}
-            onClick={() => setMode("edit")}
-            size="sm"
-          >
-            Edit
-          </Button>
-          <Button
-            type="button"
-            variant={mode === "preview" ? "default" : "outline"}
-            onClick={() => setMode("preview")}
-            size="sm"
+            onClick={() => setActiveTab('preview')}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'preview'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
           >
             Preview
-          </Button>
+          </button>
         </div>
       </div>
-      
-      {mode === "edit" ? (
-        <Textarea
-          ref={textareaRef}
-          id={id}
-          name={name}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="min-h-[400px] font-mono text-sm"
-          placeholder="Write your markdown content here..."
-        />
-      ) : (
-        <>
-          {/* Hidden input to ensure content is submitted when in preview mode */}
-          <input type="hidden" name={name} value={value} />
-          <Card className="p-4 min-h-[400px] prose prose-sm max-w-none overflow-auto">
-            <div className="markdown-preview">
-              <PostContent content={value} format="markdown" />
+
+      <div className="space-y-2">
+        <input type="hidden" name={name} value={value} />
+        
+        {activeTab === 'write' ? (
+          <div className="space-y-2">
+            <Textarea
+              id={id}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className="min-h-[400px] font-mono text-sm"
+              placeholder="Write your markdown content here..."
+            />
+            <div className="text-xs text-gray-500 space-y-1">
+              <p><strong>Markdown Quick Reference:</strong></p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>• # Header 1</div>
+                <div>• **bold text**</div>
+                <div>• ## Header 2</div>
+                <div>• *italic text*</div>
+                <div>• ### Header 3</div>
+                <div>• `inline code`</div>
+                <div>• [link text](url)</div>
+                <div>• ```code block```</div>
+              </div>
             </div>
-          </Card>
-        </>
-      )}
-      
-      <div className="text-xs text-gray-500">
-        <p>Markdown syntax supported:</p>
-        <ul className="list-disc pl-5 space-y-1 mt-1">
-          <li># Heading 1, ## Heading 2, ### Heading 3</li>
-          <li>**Bold text**, *Italic text*</li>
-          <li>`inline code`</li>
-          <li>- List items</li>
-          <li>Embeds: YouTube, Twitter/X, and Bluesky URLs are automatically detected</li>
-          <li>Manual embed syntax: [youtube]URL[/youtube], [twitter]URL[/twitter], [bluesky]URL[/bluesky]</li>
-        </ul>
+          </div>
+        ) : (
+          <div className="border rounded-md p-4 min-h-[400px] bg-gray-50">
+            <div className="prose max-w-none">
+              <div
+                dangerouslySetInnerHTML={{ __html: previewContent }}
+                className="text-sm leading-relaxed"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

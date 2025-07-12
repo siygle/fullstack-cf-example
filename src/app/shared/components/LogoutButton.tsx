@@ -38,7 +38,9 @@ export function LogoutButton({ className, authUrl }: LogoutButtonProps) {
         authClient.signOut({
           fetchOptions: {
             onSuccess: () => {
-              window.location.href = link("/user/login")
+              if (typeof window !== 'undefined') {
+                window.location.href = link("/user/login")
+              }
             },
           },
         })

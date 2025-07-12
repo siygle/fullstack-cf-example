@@ -83,7 +83,9 @@ export function Login({ ctx }: { ctx: AppContext }) {
         {
           onRequest: () => setResult("Verifying code..."),
           onSuccess: () => {
-            window.location.href = link("/")
+            if (typeof window !== 'undefined') {
+              window.location.href = link("/")
+            }
           },
           onError: (ctx) => {
             console.log("error verifying OTP", ctx.error)

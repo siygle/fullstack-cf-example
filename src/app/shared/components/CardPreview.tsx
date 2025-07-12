@@ -22,6 +22,8 @@ export function CardPreview({ url, className = "" }: CardPreviewProps) {
   const [metadata, setMetadata] = useState<CardMetadata | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [faviconError, setFaviconError] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -102,17 +104,13 @@ export function CardPreview({ url, className = "" }: CardPreviewProps) {
             
             {/* URL with favicon */}
             <div className="flex items-center gap-2 text-sm text-slate-500">
-              {metadata.favicon && !metadata.error ? (
+              {metadata.favicon && !metadata.error && !faviconError ? (
                 <img
                   src={metadata.favicon}
                   alt=""
                   className="w-4 h-4 object-contain"
-                  onError={(e) => {
-                    // Replace with fallback emoji
-                    const parent = e.currentTarget.parentElement
-                    if (parent) {
-                      parent.innerHTML = '<span class="text-xs">🔗</span><span class="truncate ml-2">' + (metadata.domain || url) + '</span>'
-                    }
+                  onError={() => {
+                    setFaviconError(true)
                   }}
                 />
               ) : (
@@ -125,28 +123,26 @@ export function CardPreview({ url, className = "" }: CardPreviewProps) {
           {/* OG Image - right side */}
           {metadata.image && !metadata.error && (
             <div className="absolute top-4 right-4 w-32 h-20 rounded-lg overflow-hidden shadow-sm bg-gray-100">
-              <img
-                src={`/api/image-proxy?url=${encodeURIComponent(metadata.image)}`}
-                alt=""
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                onError={(e) => {
-                  console.error('OG Image failed to load:', metadata.image)
-                  console.error('Error event:', e)
-                  // Show fallback placeholder on error
-                  const container = e.currentTarget.parentElement
-                  if (container) {
-                    container.innerHTML = `
-                      <div class="w-full h-full bg-red-100 border-2 border-red-300 flex items-center justify-center text-red-600 text-xs font-bold">
-                        IMAGE<br/>FAILED
-                      </div>
-                    `
-                  }
-                }}
-                onLoad={(e) => {
-                  console.log('OG Image loaded successfully:', metadata.image)
-                  console.log('Image dimensions:', e.currentTarget.naturalWidth, 'x', e.currentTarget.naturalHeight)
-                }}
-              />
+              {!imageError ? (
+                <img
+                  src={`/api/image-proxy?url=${encodeURIComponent(metadata.image)}`}
+                  alt=""
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  onError={(e) => {
+                    console.error('OG Image failed to load:', metadata.image)
+                    console.error('Error event:', e)
+                    setImageError(true)
+                  }}
+                  onLoad={(e) => {
+                    console.log('OG Image loaded successfully:', metadata.image)
+                    console.log('Image dimensions:', e.currentTarget.naturalWidth, 'x', e.currentTarget.naturalHeight)
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-red-100 border-2 border-red-300 flex items-center justify-center text-red-600 text-xs font-bold">
+                  IMAGE<br/>FAILED
+                </div>
+              )}
             </div>
           )}
         </div>

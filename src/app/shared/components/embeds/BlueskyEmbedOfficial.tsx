@@ -24,6 +24,11 @@ export function BlueskyEmbedOfficial({ url }: BlueskyEmbedOfficialProps) {
 
     // Load the Bluesky embed script
     const loadScript = () => {
+      // Guard against server-side execution
+      if (typeof document === 'undefined' || typeof window === 'undefined') {
+        return;
+      }
+      
       // Check if script is already loaded
       if (document.querySelector('script[src="https://embed.bsky.app/static/embed.js"]')) {
         setScriptLoaded(true);
@@ -72,7 +77,7 @@ export function BlueskyEmbedOfficial({ url }: BlueskyEmbedOfficialProps) {
   }, [url, isClient]);
 
   useEffect(() => {
-    if (scriptLoaded && embedRef.current && window.bluesky && atUri) {
+    if (scriptLoaded && embedRef.current && typeof window !== 'undefined' && window.bluesky && atUri) {
       // Re-process embeds when script loads and AT URI is ready
       window.bluesky.scan();
     }

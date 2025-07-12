@@ -5,10 +5,19 @@ initClient()
 import { createRoot } from "react-dom/client"
 import { PostContent } from "./app/pages/components/PostContent"
 
-console.log("client.tsx script loaded");
+// Only run client-side code in browser environment
+if (typeof window !== 'undefined') {
+  console.log("client.tsx script loaded");
+}
 
 // Function to render markdown content
 function renderMarkdownContent(elementId: string): boolean {
+  // Guard against server-side execution
+  if (typeof document === 'undefined') {
+    console.warn('renderMarkdownContent called on server-side, skipping');
+    return false;
+  }
+  
   try {
     const element = document.getElementById(elementId);
     if (!element) {
@@ -62,18 +71,20 @@ function renderMarkdownContent(elementId: string): boolean {
 }
 
 // Process all content shells when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM fully loaded, searching for content shells");
-  
-  // Find all content shells
-  const contentShells = document.querySelectorAll("[id^='post-content-shell-']");
-  console.log(`Found ${contentShells.length} content shells`);
-  
-  // Process each content shell
-  contentShells.forEach(shell => {
-    renderMarkdownContent(shell.id);
+if (typeof document !== 'undefined') {
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM fully loaded, searching for content shells");
+    
+    // Find all content shells
+    const contentShells = document.querySelectorAll("[id^='post-content-shell-']");
+    console.log(`Found ${contentShells.length} content shells`);
+    
+    // Process each content shell
+    contentShells.forEach(shell => {
+      renderMarkdownContent(shell.id);
+    });
   });
-});
+}
 
 // Define the custom event type
 interface ContentShellMountedEvent extends CustomEvent {
@@ -83,38 +94,42 @@ interface ContentShellMountedEvent extends CustomEvent {
 }
 
 // Also listen for the contentShellMounted event
-window.addEventListener("contentShellMounted", ((event: ContentShellMountedEvent) => {
-  const { id } = event.detail;
-  console.log(`Received contentShellMounted event for ${id}`);
-  renderMarkdownContent(id);
-}) as EventListener);
+if (typeof window !== 'undefined') {
+  window.addEventListener("contentShellMounted", ((event: ContentShellMountedEvent) => {
+    const { id } = event.detail;
+    console.log(`Received contentShellMounted event for ${id}`);
+    renderMarkdownContent(id);
+  }) as EventListener);
+}
 
 // Add a fallback mechanism to check periodically for unprocessed content shells
-let checkCount = 0;
-const maxChecks = 10;
+if (typeof document !== 'undefined') {
+  let checkCount = 0;
+  const maxChecks = 10;
 
-const checkForContentShells = () => {
-  if (checkCount >= maxChecks) return;
-  
-  const contentShells = document.querySelectorAll("[id^='post-content-shell-']");
-  let unprocessedFound = false;
-  
-  contentShells.forEach(shell => {
-    // Check if this shell has already been processed
-    if (!shell.querySelector('.prose')) {
-      console.log(`Found unprocessed content shell: ${shell.id}`);
-      renderMarkdownContent(shell.id);
-      unprocessedFound = true;
+  const checkForContentShells = () => {
+    if (checkCount >= maxChecks) return;
+    
+    const contentShells = document.querySelectorAll("[id^='post-content-shell-']");
+    let unprocessedFound = false;
+    
+    contentShells.forEach(shell => {
+      // Check if this shell has already been processed
+      if (!shell.querySelector('.prose')) {
+        console.log(`Found unprocessed content shell: ${shell.id}`);
+        renderMarkdownContent(shell.id);
+        unprocessedFound = true;
+      }
+    });
+    
+    checkCount++;
+    
+    // If we found unprocessed shells, schedule another check
+    if (unprocessedFound || checkCount < 3) {
+      setTimeout(checkForContentShells, 500);
     }
-  });
-  
-  checkCount++;
-  
-  // If we found unprocessed shells, schedule another check
-  if (unprocessedFound || checkCount < 3) {
-    setTimeout(checkForContentShells, 500);
-  }
-};
+  };
 
-// Start checking after a short delay
-setTimeout(checkForContentShells, 300);
+  // Start checking after a short delay
+  setTimeout(checkForContentShells, 300);
+}
