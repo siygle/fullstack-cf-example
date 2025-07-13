@@ -26,7 +26,7 @@ function renderMarkdownContent(elementId: string): boolean {
     }
     
     const content = decodeURIComponent(element.getAttribute("data-content") || "");
-    const format = element.getAttribute("data-format") || "markdown";
+    const format = "markdown";
     
     console.log(`Rendering content in ${elementId} with format: ${format}`);
     console.log(`Content preview: ${content.substring(0, 50)}...`);
@@ -55,7 +55,7 @@ function renderMarkdownContent(elementId: string): boolean {
     root.render(
       <PostContent
         content={content}
-        format={format as 'html' | 'plain' | 'markdown'}
+        format="markdown"
       />
     );
     

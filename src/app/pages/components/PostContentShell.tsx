@@ -5,17 +5,11 @@ import { PostContent } from "./PostContent";
 
 interface PostContentShellProps {
   content: string;
-  format: string;
   postId: string;
 }
 
 // Simplified server component that directly renders PostContent
-export function PostContentShell({ content, format, postId }: PostContentShellProps) {
-  // Validate format and provide fallback
-  const validFormat = ['html', 'markdown', 'plain'].includes(format) 
-    ? format as 'html' | 'markdown' | 'plain'
-    : 'plain';
-
+export function PostContentShell({ content, postId }: PostContentShellProps) {
   return (
     <div 
       id={`post-content-${postId}`}
@@ -23,7 +17,7 @@ export function PostContentShell({ content, format, postId }: PostContentShellPr
     >
       <PostContent 
         content={content} 
-        format={validFormat} 
+        format="markdown" 
       />
     </div>
   );

@@ -14,15 +14,12 @@ interface PostFormProps {
   tags?: Tag[]
 }
 
-// Available post formats
-type PostFormat = "markdown" | "html" | "text"
 
 export function PostForm({ post, tags = [] }: PostFormProps) {
   const [title, setTitle] = useState(post?.title || "")
   const [content, setContent] = useState(post?.content || "")
   const [status, setStatus] = useState(post?.status || "draft")
   const [tagInput, setTagInput] = useState(tags?.map(t => t.name).join(", ") || "")
-  const [format, setFormat] = useState<PostFormat>("markdown")
   const [slug, setSlug] = useState(post?.slug || "")
   const [publishedDate, setPublishedDate] = useState(
     post?.publishedDate 
@@ -147,41 +144,6 @@ export function PostForm({ post, tags = [] }: PostFormProps) {
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="format">Format</Label>
-        <div className="flex gap-4">
-          <label className="flex items-center space-x-2">
-            <input
-              type="radio"
-              name="format"
-              value="markdown"
-              checked={format === "markdown"}
-              onChange={() => setFormat("markdown")}
-            />
-            <span>Markdown</span>
-          </label>
-          <label className="flex items-center space-x-2">
-            <input
-              type="radio"
-              name="format"
-              value="html"
-              checked={format === "html"}
-              onChange={() => setFormat("html")}
-            />
-            <span>HTML</span>
-          </label>
-          <label className="flex items-center space-x-2">
-            <input
-              type="radio"
-              name="format"
-              value="text"
-              checked={format === "text"}
-              onChange={() => setFormat("text")}
-            />
-            <span>Plain Text</span>
-          </label>
-        </div>
-      </div>
       
       <div className="space-y-2">
         <Label htmlFor="tags">Tags (comma separated)</Label>
@@ -197,35 +159,12 @@ export function PostForm({ post, tags = [] }: PostFormProps) {
       <div className="space-y-2">
         <Label htmlFor="content">Content</Label>
         
-        {/* Hidden input to store the format */}
-        <input type="hidden" name="format" value={format} />
-        
-        {format === "markdown" ? (
-          <SimpleMarkdownEditor
-            id="content"
-            name="content"
-            value={content}
-            onChange={setContent}
-          />
-        ) : format === "html" ? (
-          <Textarea
-            id="content"
-            name="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="min-h-[300px] font-mono"
-            placeholder="<p>Your HTML content here</p>"
-          />
-        ) : (
-          <Textarea
-            id="content"
-            name="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="min-h-[300px]"
-            placeholder="Your plain text content here"
-          />
-        )}
+        <SimpleMarkdownEditor
+          id="content"
+          name="content"
+          value={content}
+          onChange={setContent}
+        />
       </div>
       
       <Button type="submit" className="w-full">

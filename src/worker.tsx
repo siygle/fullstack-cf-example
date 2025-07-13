@@ -8,10 +8,12 @@ import { Home } from "@/app/pages/Home"
 // import { Landing } from "@/app/pages/Landing"
 import { Post } from "@/app/pages/Post"
 import { PostByUrl } from "@/app/pages/PostByUrl"
+import { TaggedPosts } from "@/app/pages/TaggedPosts"
 import { userRoutes } from "@/app/pages/user/routes"
 import { Dashboard } from "@/app/pages/admin/Dashboard"
 import { Posts } from "@/app/pages/admin/Posts"
 import { PostEditor } from "@/app/pages/admin/PostEditor"
+import { TagsAdmin } from "@/app/pages/admin/TagsAdmin"
 import { Settings } from "@/app/pages/admin/Settings"
 import { auth } from "@/lib/auth"
 import { User } from "@/db/schema/auth-schema"
@@ -298,11 +300,13 @@ export default defineApp([
   render(Document, [
     route("/", Home),
     route("/post/:id", Post),
+    route("/tags/:tagName", TaggedPosts),
     prefix("/user", userRoutes),
     route("/admin", [isAuthenticated, Dashboard]),
     route("/admin/posts", [isAuthenticated, Posts]),
     route("/admin/post", [isAuthenticated, PostEditor]),
     route("/admin/post/:id", [isAuthenticated, PostEditor]),
+    route("/admin/tags", [isAuthenticated, TagsAdmin]),
     route("/admin/setting", [isAuthenticated, Settings]),
     // Dynamic route for custom post URLs - must be last to act as catch-all
     route("/:path*", PostByUrl),

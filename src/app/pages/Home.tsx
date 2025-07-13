@@ -107,12 +107,13 @@ const Home = async ({ ctx, request }: { ctx: AppContext; request: Request }) => 
                 </div>
                 <div className="mt-4 flex gap-2">
                   {post.tags.map((tag) => (
-                    <span
+                    <a
                       key={tag.id}
-                      className="px-2 py-1 bg-muted rounded-full text-xs"
+                      href={`/tags/${encodeURIComponent(tag.name)}`}
+                      className="px-2 py-1 bg-muted rounded-full text-xs hover:bg-muted/80 transition-colors cursor-pointer"
                     >
-                      {tag.name}
-                    </span>
+                      #{tag.name}
+                    </a>
                   ))}
                 </div>
                 <div className="mt-4">

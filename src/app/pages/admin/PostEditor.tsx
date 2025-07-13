@@ -44,7 +44,6 @@ const PostEditor = async ({ ctx, params, request }: { ctx: AppContext; params?: 
     const title = formData.get("title") as string
     const content = formData.get("content") as string
     const status = formData.get("status") as string
-    const format = formData.get("format") as string || "markdown" // Default to markdown if not specified
     const tagNames = (formData.get("tags") as string).split(",").map(t => t.trim()).filter(Boolean)
     const slugInput = formData.get("slug") as string
     const publishedDateInput = formData.get("publishedDate") as string
@@ -81,7 +80,6 @@ const PostEditor = async ({ ctx, params, request }: { ctx: AppContext; params?: 
           title,
           content,
           status,
-          format,
           slug,
           publishedDate,
           updatedAt: new Date(),
@@ -95,7 +93,6 @@ const PostEditor = async ({ ctx, params, request }: { ctx: AppContext; params?: 
         title,
         content,
         status,
-        format,
         slug,
         publishedDate,
         createdAt: new Date(),

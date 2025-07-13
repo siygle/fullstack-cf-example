@@ -91,30 +91,24 @@ const Post = async ({ ctx, params }: { ctx: AppContext; params: { id: string } }
                   })}
                 </time>
                 
-                <div className="flex items-center gap-3">
-                  {blogPost.format && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                      {blogPost.format.charAt(0).toUpperCase() + blogPost.format.slice(1)}
-                    </span>
-                  )}
-                  {blogPost.status !== "published" && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                      {blogPost.status.charAt(0).toUpperCase() + blogPost.status.slice(1)}
-                    </span>
-                  )}
-                </div>
+                {blogPost.status !== "published" && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    {blogPost.status.charAt(0).toUpperCase() + blogPost.status.slice(1)}
+                  </span>
+                )}
               </div>
 
               {/* Tags */}
               {postTags.length > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   {postTags.map(({ tag }) => (
-                    <span
+                    <a
                       key={tag.id}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                      href={`/tags/${encodeURIComponent(tag.name)}`}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                     >
                       #{tag.name}
-                    </span>
+                    </a>
                   ))}
                 </div>
               )}
@@ -127,7 +121,6 @@ const Post = async ({ ctx, params }: { ctx: AppContext; params: { id: string } }
               <div className="post-content prose prose-lg prose-slate max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:leading-relaxed prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-900 prose-code:text-slate-800 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
                 <PostContentShell
                   content={blogPost.content}
-                  format={blogPost.format || "markdown"}
                   postId={blogPost.id}
                 />
               </div>

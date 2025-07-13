@@ -44,6 +44,9 @@ const Posts = async ({ ctx }: { ctx: AppContext }) => {
             <a href="/admin/post">Create New Post</a>
           </Button>
           <Button asChild variant="outline">
+            <a href="/admin/tags">Manage Tags</a>
+          </Button>
+          <Button asChild variant="outline">
             <a href="/admin">Back to Dashboard</a>
           </Button>
         </div>
