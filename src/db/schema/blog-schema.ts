@@ -43,7 +43,24 @@ export const postToTag = sqliteTable("post_to_tag", {
     .references(() => tag.id, { onDelete: "cascade" }),
 })
 
+export const menuItem = sqliteTable("menu_item", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  url: text("url"),
+  type: text("type").notNull(), // "link" or "tag"
+  tag_id: text("tag_id").references(() => tag.id, { onDelete: "cascade" }),
+  order: integer("order").notNull().default(0),
+  is_visible: integer("is_visible", { mode: "boolean" }).notNull().default(true),
+  created_at: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updated_at: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+})
+
 export type Post = typeof post.$inferSelect
 export type Tag = typeof tag.$inferSelect
 export type PostToTag = typeof postToTag.$inferSelect
 export type Settings = typeof settings.$inferSelect
+export type MenuItem = typeof menuItem.$inferSelect

@@ -1,6 +1,7 @@
 import { db } from "@/db/db"
-import { post, tag, postToTag } from "@/db/schema"
+import { post, tag, postToTag, menuItem } from "@/db/schema"
 import { LogoutButton } from "@/app/shared/components"
+import { CustomMenu } from "@/app/shared/components/CustomMenu"
 import { AppContext } from "@/worker"
 import {
   Card,
@@ -64,24 +65,29 @@ const Home = async ({ ctx, request }: { ctx: AppContext; request: Request }) => 
     })
   )
 
+  // Fetch menu items for header
+  const menuItems = await db.query.menuItem.findMany({
+    orderBy: [menuItem.order],
+  })
+
+  // Fetch tags for menu items
+  const menuItemsWithTags = await Promise.all(
+    menuItems.map(async (item) => {
+      if (item.type === "tag" && item.tag_id) {
+        const tagData = await db.query.tag.findFirst({
+          where: eq(tag.id, item.tag_id),
+        })
+        return { ...item, tag: tagData }
+      }
+      return item
+    })
+  )
+
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">{blogTitle}</h1>
-        <div className="flex gap-4">
-          {user && (
-            <Button asChild>
-              <a href="/admin/posts">Manage Posts</a>
-            </Button>
-          )}
-          {user ? (
-            <LogoutButton authUrl={authUrl} className="button" />
-          ) : (
-            <Button asChild variant="outline">
-              <a href={link("/user/login")}>Login</a>
-            </Button>
-          )}
-        </div>
+        <CustomMenu menuItems={menuItemsWithTags} user={user} authUrl={authUrl} />
       </div>
 
       {postsWithTags.length === 0 ? (
